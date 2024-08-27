@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from "react";
 
 const AudioVisualizer: React.FC = () => {
   const [audioData, setAudioData] = useState(new Uint8Array(11).fill(25));
@@ -8,10 +8,10 @@ const AudioVisualizer: React.FC = () => {
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     const gradient = ctx.createLinearGradient(0, 0, 275, 0);
-    gradient.addColorStop(0, '#800080');  // Purple
-    gradient.addColorStop(1, '#FFC0CB');  // Pink
+    gradient.addColorStop(0, "#800080"); // Purple
+    gradient.addColorStop(1, "#FFC0CB"); // Pink
 
     const generateTargetData = () => {
       return new Uint8Array(11).map((_, index) => {
@@ -26,11 +26,11 @@ const AudioVisualizer: React.FC = () => {
     };
 
     const animate = () => {
-      setAudioData(prevData =>
+      setAudioData((prevData) =>
         prevData.map((value, index) => {
           const target = targetData[index];
-          return value + (target - value) * 1;  // Smooth transition
-        })
+          return value + (target - value) * 1; // Smooth transition
+        }),
       );
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -46,7 +46,7 @@ const AudioVisualizer: React.FC = () => {
     };
 
     animate();
-    const intervalId = setInterval(updateTargetData, 20);  // Update target every 2 seconds
+    const intervalId = setInterval(updateTargetData, 20); // Update target every 2 seconds
 
     return () => {
       clearInterval(intervalId);
@@ -56,7 +56,12 @@ const AudioVisualizer: React.FC = () => {
 
   return (
     <div className="flex justify-center items-center h-screen bg-gray-100">
-      <canvas ref={canvasRef} width={275} height={100} className="border border-gray-300 rounded-lg shadow-lg" />
+      <canvas
+        ref={canvasRef}
+        width={275}
+        height={100}
+        className="border border-gray-300 rounded-lg shadow-lg"
+      />
     </div>
   );
 };

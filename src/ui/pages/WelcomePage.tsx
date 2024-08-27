@@ -1,3 +1,3 @@
-const WelcomePage: React.FC = () => (<></>)
+const WelcomePage: React.FC = () => <></>;
 
 export default WelcomePage;

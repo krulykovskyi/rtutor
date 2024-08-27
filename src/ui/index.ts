@@ -5,7 +5,7 @@ import pages from "./pages";
 console.log(components);
 
 export default {
-    ...blocks,
-    ...components,
-    ...pages,
-}
+  ...blocks,
+  ...components,
+  ...pages,
+};

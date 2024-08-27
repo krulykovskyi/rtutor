@@ -1,7 +1,7 @@
 import React from "react";
 
 const LearningPage: React.FC = () => {
-    return <></>;
-}
+  return <></>;
+};
 
 export default LearningPage;

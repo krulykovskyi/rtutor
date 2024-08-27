@@ -1,5 +1,5 @@
 import React from "react";
 
-const Menu: React.FC = () => (<></>);
+const Menu: React.FC = () => <></>;
 
 export default Menu;
