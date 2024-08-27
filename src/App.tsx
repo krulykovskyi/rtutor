@@ -1,51 +1,43 @@
 import { useState } from "react";
-import reactLogo from "./assets/react.svg";
 import { invoke } from "@tauri-apps/api/tauri";
 import "./App.css";
+import AudioVisualizer from "./ui/components/AudioVisualizer";
 
 function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
+  const [answer, setAnswer] = useState("");
+  const [question, setQuestion] = useState("");
 
-  async function greet() {
+  async function ask() {
     // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-    setGreetMsg(await invoke("greet", { name }));
+    try {
+      setAnswer(await invoke("reply", { question }));
+    } catch (e) {
+      setAnswer(JSON.stringify(e));
+    }
   }
 
   return (
     <div className="container">
-      <h1>Welcome to Tauri!</h1>
+      <h1>Welcome to RTutor</h1>
 
-      <div className="row">
-        <a href="https://vitejs.dev" target="_blank">
-          <img src="/vite.svg" className="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://reactjs.org" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-
-      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
+      <AudioVisualizer />
 
       <form
         className="row"
         onSubmit={(e) => {
           e.preventDefault();
-          greet();
+          ask();
         }}
       >
         <input
           id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
+          onChange={(e) => setQuestion(e.currentTarget.value)}
+          placeholder="Задайте вопрос репетитору..."
         />
-        <button type="submit">Greet</button>
+        <button type="submit">ask</button>
       </form>
 
-      <p>{greetMsg}</p>
+      <p>{answer}</p>
     </div>
   );
 }
