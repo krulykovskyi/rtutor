@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
 import "./App.css";
-import AudioVisualizer from "./ui/components/AudioVisualizer";
+import ui from "./ui";
+
+const { AudioVisualizer } = ui;
 
 function App() {
   const [answer, setAnswer] = useState("");
@@ -34,7 +36,6 @@ function App() {
           onChange={(e) => setQuestion(e.currentTarget.value)}
           placeholder="Задайте вопрос репетитору..."
         />
-        <button type="submit">ask</button>
       </form>
 
       <p>{answer}</p>
