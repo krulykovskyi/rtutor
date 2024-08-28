@@ -1,44 +1,30 @@
+import Menu from "./ui/blocks/Menu";
+import WelcomePage from "./ui/pages/WelcomePage";
+import LearningPage from "./ui/pages/LearningPage";
+import SettingsPage from "./ui/pages/SettingsPage";
 import { useState } from "react";
-import { invoke } from "@tauri-apps/api/tauri";
-import "./App.css";
-import ui from "./ui";
 
-const { AudioVisualizer } = ui;
+type PageKey = "welcome" | "learning" | "settings";
+type PageComponent =
+  | typeof WelcomePage
+  | typeof LearningPage
+  | typeof SettingsPage;
+
+const pageToComponent: Record<PageKey, PageComponent> = {
+  welcome: WelcomePage,
+  learning: LearningPage,
+  settings: SettingsPage,
+};
 
 function App() {
-  const [answer, setAnswer] = useState("");
-  const [question, setQuestion] = useState("");
+  const [activePage, setActivePage] = useState("welcome" as PageKey);
 
-  async function ask() {
-    // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-    try {
-      setAnswer(await invoke("reply", { question }));
-    } catch (e) {
-      setAnswer(JSON.stringify(e));
-    }
-  }
+  const Page = pageToComponent[activePage];
 
   return (
-    <div className="container">
-      <h1>Welcome to RTutor</h1>
-
-      <AudioVisualizer />
-
-      <form
-        className="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          ask();
-        }}
-      >
-        <input
-          id="greet-input"
-          onChange={(e) => setQuestion(e.currentTarget.value)}
-          placeholder="Задайте вопрос репетитору..."
-        />
-      </form>
-
-      <p>{answer}</p>
+    <div className="app">
+      <Menu pages={Object.keys(pageToComponent)} setPage={setActivePage} />
+      <Page />
     </div>
   );
 }

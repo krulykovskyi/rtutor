@@ -2,10 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use dotenvy::dotenv;
-use openai::{
-    chat::{ChatCompletion, ChatCompletionMessage, ChatCompletionMessageRole},
-    set_base_url, set_key,
-};
+use openai::{ set_base_url, set_key };
 use rtutor::call_openai_api;
 use std::env;
 
