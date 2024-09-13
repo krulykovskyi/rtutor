@@ -3,23 +3,30 @@
 
 use dotenvy::dotenv;
 use openai::{ set_base_url, set_key };
-use rtutor::call_openai_api;
+use rtutor::{ functions::setup_db, app_state::AppState, commands };
 use std::env;
-
-// Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-#[tauri::command]
-async fn reply(question: String) -> String {
-    let answer = call_openai_api(question).await;
-    format!("{}", answer)
-}
+use tauri::Manager;
 
 fn main() {
     dotenv().unwrap();
     set_key(env::var("OPENAI_KEY").unwrap());
-    set_base_url(env::var("OPENAI_BASE_URL").unwrap_or_default());
+    set_base_url(env::var("OPENAI_BASE_URL").unwrap());
 
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![reply])
+        .setup(|app| {
+            let app_dir = app.path_resolver()
+                   .app_data_dir()
+                   .expect("Не удалось получить директорию приложения");
+
+            let db_dirname = env::var("DB_DIRNAME").unwrap();
+
+            setup_db(&app_dir, &db_dirname);
+
+            // Сохраняем путь к директории в состоянии приложения
+            app.manage(AppState { data_dir: app_dir.join(&db_dirname) });
+            Ok(())
+        })
+        .invoke_handler(tauri::generate_handler![commands::get_startup_data])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
