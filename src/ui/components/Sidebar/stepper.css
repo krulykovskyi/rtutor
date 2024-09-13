@@ -1,0 +1,32 @@
+.step-item{
+  @apply relative flex flex-col justify-center items-center w-36;
+}
+
+.step-item:not(:first-child)::before {
+  @apply content-[''] bg-slate-200 absolute w-[3px] h-full left-[20] top-4 -translate-y-2/4;
+}
+
+.step {
+  @apply w-10 h-10 flex z-10 relative bg-gray-600 rounded-full items-center justify-center font-semibold text-white;
+}
+
+.btn {
+  @apply bg-gray-800 hover:bg-gray-700 text-gray-100 font-medium;
+}
+
+.active .step {
+  @apply bg-yellow-600;
+}
+
+.complete .step {
+  @apply bg-green-600
+}
+
+.shadow:nth-child(n) {
+  display: none;
+}
+
+.opened .shadow:nth-child(n) {
+  display: block;
+  transition-duration: 500;
+}

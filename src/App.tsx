@@ -6,6 +6,9 @@ import WelcomePage from "./ui/pages/WelcomePage";
 import LearningPage from "./ui/pages/LearningPage";
 import SettingsPage from "./ui/pages/SettingsPage";
 import "./App.css";
+import Chat from './ui/components/Chat/Chat';
+import Chatcode from './ui/components/Chatcode';
+import Sidebar from './ui/components/Sidebar/Sidebar';
 
 type PageKey = "welcome" | "learning" | "settings";
 type PageComponent =
@@ -39,11 +42,16 @@ function App() {
   }
 
   return (
-    <div className="app ">
-      <Menu pages={Object.keys(pageToComponent)} setPage={setActivePage} />
-      <Page />
-    </div>
   );
 }
 
 export default App;
+
+
+//     <div className="app bg-gray-900 w-1/1 h-screen flex p-1">
+//       <Sidebar />
+//       <div className='flex border-2 ml-2 border-yellow-500 rounded-lg w-full'>
+//         <Chat />
+//         <Chatcode />
+//       </div>
+//     </div>
