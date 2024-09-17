@@ -2,8 +2,8 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use dotenvy::dotenv;
-use openai::{ set_base_url, set_key };
-use rtutor::{ functions::setup_db, app_state::AppState, commands };
+use openai::{set_base_url, set_key};
+use rtutor::{app_state::AppState, commands, functions::setup_db};
 use std::env;
 use tauri::Manager;
 
@@ -14,16 +14,18 @@ fn main() {
 
     tauri::Builder::default()
         .setup(|app| {
-            let app_dir = app.path_resolver()
-                   .app_data_dir()
-                   .expect("Не удалось получить директорию приложения");
+            let app_dir = app
+                .path_resolver()
+                .app_data_dir()
+                .expect("Не удалось получить директорию приложения");
 
             let db_dirname = env::var("DB_DIRNAME").unwrap();
 
-            setup_db(&app_dir, &db_dirname);
+            let mut state = AppState::new(app_dir.join(db_dirname));
 
-            // Сохраняем путь к директории в состоянии приложения
-            app.manage(AppState { data_dir: app_dir.join(&db_dirname) });
+            setup_db(&state);
+
+            app.manage(state);
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![commands::get_startup_data])

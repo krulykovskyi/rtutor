@@ -1,35 +1,41 @@
 import { useEffect, useState } from "react";
 import { useTauriAPI } from "./hooks/useTauriApi";
 import { useAppContext } from "./contexts/AppContext";
-import Menu from "./ui/blocks/Menu";
-import WelcomePage from "./ui/pages/WelcomePage";
+import Sidebar from "./ui/blocks/Sidebar";
+import HomePage from "./ui/pages/HomePage";
 import LearningPage from "./ui/pages/LearningPage";
 import SettingsPage from "./ui/pages/SettingsPage";
+import ProfilePage from "./ui/pages/ProfilePage";
 import "./App.css";
-import Chat from './ui/components/Chat/Chat';
-import Chatcode from './ui/components/Chatcode';
-import Sidebar from './ui/components/Sidebar/Sidebar';
 
-type PageKey = "welcome" | "learning" | "settings";
+export type PageKey = "home" | "learning" | "settings" | "profile";
 type PageComponent =
-  | typeof WelcomePage
+  | typeof HomePage
   | typeof LearningPage
-  | typeof SettingsPage;
+  | typeof SettingsPage
+  | typeof ProfilePage;
 
 const pageToComponent: Record<PageKey, PageComponent> = {
-  welcome: WelcomePage,
+  home: HomePage,
   learning: LearningPage,
   settings: SettingsPage,
+  profile: ProfilePage,
 };
 
 function App() {
   const { getStartupData } = useTauriAPI();
   const { state } = useAppContext();
-  const [activePage, setActivePage] = useState("welcome" as PageKey);
+  const [activePage, setActivePage] = useState("home" as PageKey);
 
   useEffect(() => {
     getStartupData();
   }, []);
+
+  useEffect(() => {
+    setActivePage("learning");
+  }, [state.data.currentLessonId]);
+
+  console.log("App RENDER");
 
   const Page = pageToComponent[activePage];
 
@@ -42,16 +48,11 @@ function App() {
   }
 
   return (
+    <div className="app bg-gray-900 w-1/1 h-screen flex p-1">
+      <Sidebar setPage={setActivePage} />
+      <Page />
+    </div>
   );
 }
 
 export default App;
-
-
-//     <div className="app bg-gray-900 w-1/1 h-screen flex p-1">
-//       <Sidebar />
-//       <div className='flex border-2 ml-2 border-yellow-500 rounded-lg w-full'>
-//         <Chat />
-//         <Chatcode />
-//       </div>
-//     </div>

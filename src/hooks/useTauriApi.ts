@@ -1,6 +1,15 @@
 import { invoke } from "@tauri-apps/api/tauri";
 import { useAppContext } from "../contexts/AppContext";
-import { AppData } from "../types/AppState";
+import { AppAction, AppData } from "../types/AppState";
+import { Settings } from "../types/Settings";
+
+const cathErr = (error: any, dispatch: React.Dispatch<AppAction>) => {
+  if (error instanceof Error) {
+    dispatch({ type: "APP_ERR", payload: error.message });
+  } else {
+    dispatch({ type: "APP_ERR", payload: String(error) });
+  }
+};
 
 export const useTauriAPI = () => {
   const { dispatch } = useAppContext();
@@ -13,13 +22,21 @@ export const useTauriAPI = () => {
 
       dispatch({ type: "STARTUP", payload: data });
     } catch (error) {
-      if (error instanceof Error) {
-        dispatch({ type: "APP_ERR", payload: error.message });
-      } else {
-        dispatch({ type: "APP_ERR", payload: String(error) });
-      }
+      cathErr(error, dispatch);
     }
   };
 
-  return { getStartupData };
+  const updateSettings = async (settings: Settings) => {
+    try {
+      dispatch({ type: "INVOKE_API" });
+
+      await invoke("update_settings", { settings });
+
+      dispatch({ type: "INVOKE_API_OK" });
+    } catch (error) {
+      cathErr(error, dispatch);
+    }
+  };
+
+  return { getStartupData, updateSettings };
 };

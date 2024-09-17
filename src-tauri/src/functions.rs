@@ -1,41 +1,65 @@
 use openai::chat::{ChatCompletion, ChatCompletionMessage, ChatCompletionMessageRole};
-use std::{fs::{create_dir_all, read_to_string, File}, io::{ Result, Write }, path::PathBuf};
 use serde_json::to_string;
+use std::{
+    fs::{create_dir_all, read_to_string, File},
+    io::{Result, Write},
+    path::PathBuf,
+};
 
-use crate::settings::Settings;
+use crate::{
+    app_state::AppState,
+    lessons_list::{LessonsList, LessonsListItem, BASIC_RUST_LESSONS},
+    settings::Settings,
+};
 
-pub fn setup_db(app_dir: &PathBuf, db_dirname: &String) -> Result<()> {
-    let db_dirpath = app_dir.join(db_dirname);
+pub fn setup_db(state: &AppState) -> Result<()> {
+    let db_dir = &state.db_dir;
+    let db_files_paths = &state.db_files_paths;
 
-    if !db_dirpath.exists() {
-        create_dir_all(&db_dirpath)
-            .expect("Не удалось создать директорию базы данных");
+    if !db_dir.exists() {
+        create_dir_all(&db_dir).expect("Не удалось создать директорию базы данных");
 
-        let mut file = File::create(db_dirpath.join("settings.json"))
-            .expect("Не удалось создать файл настроек");
-        let initial_settings = Settings {
-            lang: String::from("en"),
-            theme: String::from("dark"),
-        };      
-        let json_data = to_string(&initial_settings).unwrap();
+        db_files_paths
+            .iter()
+            .for_each(|(filename, path)| match filename.as_str() {
+                "settings" => {
+                    let mut file = File::create(path).expect("Не удалось создать файл настроек");
+                    let initial_settings = Settings {
+                        lang: String::from("en"),
+                        theme: String::from("dark"),
+                    };
+                    let json_data = to_string(&initial_settings).unwrap();
 
-        file.write_all(json_data.as_bytes())?;
+                    file.write_all(json_data.as_bytes()).unwrap();
+                }
+                "lessons_list" => {
+                    let mut file =
+                        File::create(path).expect("Не удалось создать файл списка уроков");
+                    let initial_lessons_list: LessonsList = BASIC_RUST_LESSONS
+                        .iter()
+                        .enumerate()
+                        .map(|(index, title)| LessonsListItem {
+                            id: index.to_string(),
+                            title: title.to_string(),
+                            completed: false,
+                        })
+                        .collect();
+                    let json_data = to_string(&initial_lessons_list).unwrap();
+
+                    file.write_all(json_data.as_bytes()).unwrap();
+                }
+                _ => {
+                    // Create empty file
+                    let mut file = File::create(path)
+                        .expect(("Не удалось создать файл".to_string() + filename).as_str());
+
+                    file.write_all("{}".as_bytes()).unwrap();
+                }
+            });
 
         Ok(())
     } else {
         Ok(())
-    }
-}
-
-pub fn read_db_file(app_dir: PathBuf, filename: String) -> Result<String> {
-    let file_path = app_dir.join(&(filename.clone() + ".json"));
-
-    match filename.as_str() {
-        "settings" => {
-            let settings = read_to_string(file_path)?;
-            Ok(settings)
-        },
-        _ => Err(std::io::Error::new(std::io::ErrorKind::Other, "Unknown db filename"))
     }
 }
 

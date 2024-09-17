@@ -5,7 +5,7 @@ import { Lesson } from "./Lesson";
 export type AppData = {
   settings: Settings;
   lessonsList: LessonsList;
-  lastLessonId: Lesson["id"] | null;
+  currentLessonId: Lesson["id"] | null;
 };
 
 export interface AppState {
@@ -16,6 +16,7 @@ export interface AppState {
 
 export type AppAction =
   | { type: "INVOKE_API" }
+  | { type: "INVOKE_API_OK" }
   | { type: "APP_ERR"; payload: string }
-  | { type: "STARTUP"; payload: AppData };
-  
+  | { type: "STARTUP"; payload: AppData }
+  | { type: "SET_CURRENT_LESSON_ID"; payload: Lesson["id"] };
