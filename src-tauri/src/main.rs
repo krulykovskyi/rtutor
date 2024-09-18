@@ -21,7 +21,7 @@ fn main() {
 
             let db_dirname = env::var("DB_DIRNAME").unwrap();
 
-            let mut state = AppState::new(app_dir.join(db_dirname));
+            let state = AppState::new(app_dir.join(db_dirname));
 
             setup_db(&state);
 

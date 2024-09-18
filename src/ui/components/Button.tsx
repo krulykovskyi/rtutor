@@ -13,7 +13,11 @@ const Button: React.FC<ButtonProps> = ({
   text = "Button",
   type = "button",
 }) => (
-  <button type={type} onClick={onClick}>
+  <button
+    className="border-2 border-green-500 rounded-sm"
+    type={type}
+    onClick={onClick}
+  >
     {text}
   </button>
 );

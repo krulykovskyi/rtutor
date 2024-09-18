@@ -5,15 +5,21 @@ const LessonsList: React.FC = () => {
   const { lessonsList, currentLessonId } = state.data;
 
   return (
-    <ul>
+    <ul className="flex flex-col">
       {lessonsList.map((item, i) => (
         <li
           key={item.id}
-          className={`${item.id === currentLessonId && "current-lesson"} ${item.completed && "completed"}`}
-          onClick={() => dispatch({ type: "SET_CURRENT_LESSON_ID", payload: item.id })}
+          className={`
+            ${item.id === currentLessonId && "current-lesson"}
+            ${item.completed && "completed"}
+            mb-2 cursor-pointer
+          `}
+          onClick={() =>
+            dispatch({ type: "SET_CURRENT_LESSON_ID", payload: item.id })
+          }
         >
-          <span>{i + 1}</span>
-          {item.title}
+          <span>{i + 1}. </span>
+          <span className="underline">{item.title}</span>
         </li>
       ))}
     </ul>

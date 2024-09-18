@@ -1,9 +1,8 @@
 use openai::chat::{ChatCompletion, ChatCompletionMessage, ChatCompletionMessageRole};
 use serde_json::to_string;
 use std::{
-    fs::{create_dir_all, read_to_string, File},
+    fs::{create_dir_all, File},
     io::{Result, Write},
-    path::PathBuf,
 };
 
 use crate::{

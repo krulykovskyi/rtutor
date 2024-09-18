@@ -32,7 +32,9 @@ function App() {
   }, []);
 
   useEffect(() => {
-    setActivePage("learning");
+    if (state.data.currentLessonId) {
+      setActivePage("learning");
+    }
   }, [state.data.currentLessonId]);
 
   console.log("App RENDER");
@@ -48,7 +50,7 @@ function App() {
   }
 
   return (
-    <div className="app bg-gray-900 w-1/1 h-screen flex p-1">
+    <div className="app bg-gray-900 w-1/1 flex p-1">
       <Sidebar setPage={setActivePage} />
       <Page />
     </div>
