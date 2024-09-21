@@ -1,6 +1,10 @@
 import { useAppContext } from "../../contexts/AppContext";
 
-const LessonsList: React.FC = () => {
+type LessonsListProps = {
+  toggleMenu: Function;
+};
+
+const LessonsList: React.FC<LessonsListProps> = ({ toggleMenu }) => {
   const { state, dispatch } = useAppContext();
   const { lessonsList, currentLessonId } = state.data;
 
@@ -14,8 +18,10 @@ const LessonsList: React.FC = () => {
             ${item.completed && "completed"}
             mb-2 cursor-pointer
           `}
-          onClick={() =>
+          onClick={() =>{
+            toggleMenu()
             dispatch({ type: "SET_CURRENT_LESSON_ID", payload: item.id })
+          }
           }
         >
           <span>{i + 1}. </span>
