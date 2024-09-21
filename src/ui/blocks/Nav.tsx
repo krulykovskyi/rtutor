@@ -1,16 +1,26 @@
-import Button from "../components/Button";
+import Button from '@mui/material/Button';
+import { pageToComponent } from '../../App';
 
 type NavProps = {
   setPage: Function;
+  toggleMenu: Function;
 };
 
-const Nav: React.FC<NavProps> = ({ setPage }) => {
+const Nav: React.FC<NavProps> = ({ setPage, toggleMenu }) => {
   return (
     <nav className="flex flex-col gap-1">
-      <Button onClick={() => setPage("home")} text="Home" />
-      <Button onClick={() => setPage("settings")} text="Settings" />
-      <Button onClick={() => setPage("profile")} text="Profile" />
-      <Button onClick={() => setPage("learning")} text="Learning" />
+      {Object.keys(pageToComponent).map((page) => (
+        <Button
+          variant='outlined'
+          key={page}
+          onClick={() => {
+            setPage(page);
+            toggleMenu();
+          }}
+        >
+          {page}
+        </Button>
+      ))}
     </nav>
   );
 };

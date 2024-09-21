@@ -15,7 +15,7 @@ type PageComponent =
   | typeof SettingsPage
   | typeof ProfilePage;
 
-const pageToComponent: Record<PageKey, PageComponent> = {
+export const pageToComponent: Record<PageKey, PageComponent> = {
   home: HomePage,
   learning: LearningPage,
   settings: SettingsPage,
