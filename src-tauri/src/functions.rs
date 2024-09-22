@@ -1,7 +1,7 @@
 use openai::chat::{ChatCompletion, ChatCompletionMessage, ChatCompletionMessageRole};
-use serde_json::to_string;
+use serde_json::{to_string, Value};
 use std::{
-    fs::{create_dir_all, File},
+    fs::{create_dir_all, read_to_string, File},
     io::{Result, Write},
 };
 
@@ -60,6 +60,18 @@ pub fn setup_db(state: &AppState) -> Result<()> {
     } else {
         Ok(())
     }
+}
+
+pub fn read_db_file(filename: &str, state: &AppState) -> Result<Value> {
+    let filepath = state
+        .db_files_paths
+        .get(filename)
+        .ok_or(format!("{} path not found", filename))
+        .unwrap();
+    let data_string = read_to_string(filepath).unwrap();
+    let value: Value = serde_json::from_str(&data_string).unwrap();
+
+    Ok(value)
 }
 
 pub async fn call_openai_api(message: String) -> String {

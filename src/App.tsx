@@ -37,8 +37,6 @@ function App() {
     }
   }, [state.data.currentLessonId]);
 
-  console.log("App RENDER");
-
   const Page = pageToComponent[activePage];
 
   if (state.loading) {

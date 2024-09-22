@@ -28,7 +28,10 @@ fn main() {
             app.manage(state);
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![commands::get_startup_data])
+        .invoke_handler(tauri::generate_handler![
+            commands::get_startup_data,
+            commands::update_settings,
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
