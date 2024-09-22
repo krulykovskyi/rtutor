@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useReducer, ReactNode } from "react";
 import { AppState, AppAction } from "../types/AppState";
-import { LessonsList } from "../types/LessonsList";
 import { appReducer } from "../reducers/AppReducer";
 
 const initialState: AppState = {
@@ -10,7 +9,7 @@ const initialState: AppState = {
       theme: "dark",
     },
     lessonsList: [],
-    currentLesson: null,
+    currentLessonId: null,
   },
   loading: false,
   error: null,

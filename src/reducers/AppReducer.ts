@@ -11,6 +11,13 @@ export const appReducer = (state: AppState, action: AppAction): AppState => {
         error: null,
         data: { ...state.data, currentLessonId: action.payload },
       };
+    case "UPDATE_SETTINGS":
+      return {
+        ...state,
+        loading: false,
+        error: null,
+        data: { ...state.data, settings: action.payload },
+      };
     case "INVOKE_API":
       return { ...state, loading: true, error: null };
     case "INVOKE_API_OK":

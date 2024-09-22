@@ -19,4 +19,5 @@ export type AppAction =
   | { type: "INVOKE_API_OK" }
   | { type: "APP_ERR"; payload: string }
   | { type: "STARTUP"; payload: AppData }
-  | { type: "SET_CURRENT_LESSON_ID"; payload: Lesson["id"] };
+  | { type: "SET_CURRENT_LESSON_ID"; payload: Lesson["id"] }
+  | { type: "UPDATE_SETTINGS"; payload: Settings };

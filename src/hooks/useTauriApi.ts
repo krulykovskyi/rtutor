@@ -2,6 +2,7 @@ import { invoke } from "@tauri-apps/api/tauri";
 import { useAppContext } from "../contexts/AppContext";
 import { AppAction, AppData } from "../types/AppState";
 import { Settings } from "../types/Settings";
+import { message } from "@tauri-apps/api/dialog";
 
 const cathErr = (error: any, dispatch: React.Dispatch<AppAction>) => {
   if (error instanceof Error) {
@@ -30,7 +31,9 @@ export const useTauriAPI = () => {
     try {
       dispatch({ type: "INVOKE_API" });
 
-      await invoke("update_settings", { settings });
+      await invoke("update_settings", {
+        settings: JSON.stringify(settings),
+      });
 
       dispatch({ type: "INVOKE_API_OK" });
     } catch (error) {
