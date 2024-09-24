@@ -1,9 +1,9 @@
-import * as React from "react";
-import Drawer from "@mui/material/Drawer";
-import IconButton from "@mui/material/IconButton";
-import MenuBookIcon from "@mui/icons-material/MenuBook";
-import LessonsList from "./LessonsList";
-import Nav from "./Nav";
+import * as React from 'react';
+import Drawer from '@mui/material/Drawer';
+import IconButton from '@mui/material/IconButton';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
+import LessonsList from './LessonsList';
+import Nav from './Nav';
 
 type SidebarProps = {
   setPage: Function;
@@ -17,8 +17,8 @@ const Sidebar: React.FC<SidebarProps> = ({ setPage }) => {
   }
 
   return (
-    <div>
-      <IconButton onClick={toggleMenu}>
+    <div className='absolute top-0 left-0'>
+      <IconButton className="" onClick={toggleMenu}>
         <MenuBookIcon />
       </IconButton>
       <Drawer open={open} onClose={() => setOpen(false)}>
