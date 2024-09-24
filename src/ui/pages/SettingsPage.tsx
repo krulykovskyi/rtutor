@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useAppContext } from "../../contexts/AppContext";
 import { useTauriAPI } from "../../hooks/useTauriApi";
 import { Settings } from "../../types/Settings";
+import Button from "@mui/material/Button";
 
 const availableSettings: { [key: string]: string[] } = {
   lang: ["en", "ua", "pl"],
@@ -32,20 +33,12 @@ const SettingsPage: React.FC = () => {
           </select>
         </label>
       ))}
-      <button
-        type="submit"
-        className="bg-yellow-500 text-gray-900 px-4 py-1 rounded-lg ml-2 hover:bg-yellow-600 transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-500"
+      <Button
         onClick={() => dispatch({ type: "UPDATE_SETTINGS", payload: settings })}
       >
         apply settings
-      </button>
-      <button
-        type="submit"
-        className="bg-yellow-500 text-gray-900 px-4 py-1 rounded-lg ml-2 hover:bg-yellow-600 transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-500"
-        onClick={() => updateSettings(settings)}
-      >
-        save settings
-      </button>
+      </Button>
+      <Button onClick={() => updateSettings(settings)}>save settings</Button>
     </div>
   );
 };

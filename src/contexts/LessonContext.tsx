@@ -29,3 +29,5 @@ const LessonProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     </LessonContext.Provider>
   );
 };
+
+export default LessonProvider;

@@ -1,12 +1,8 @@
 import React from "react";
+import Paper from "@mui/material/Paper";
 
 const LearningPage: React.FC = () => {
-  return (
-    <div className="">
-      <h1 className="text-2xl text-white">Learning Page</h1>
-
-    </div>
-  );
+  return <Paper>hihihi</Paper>;
 };
 
 export default LearningPage;

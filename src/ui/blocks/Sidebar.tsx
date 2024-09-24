@@ -1,9 +1,9 @@
-import LessonsList from './LessonsList';
-import Nav from './Nav';
-import * as React from 'react';
-import Drawer from '@mui/material/Drawer';
-import Button from '@mui/material/Button';
-
+import * as React from "react";
+import Drawer from "@mui/material/Drawer";
+import IconButton from "@mui/material/IconButton";
+import MenuBookIcon from "@mui/icons-material/MenuBook";
+import LessonsList from "./LessonsList";
+import Nav from "./Nav";
 
 type SidebarProps = {
   setPage: Function;
@@ -11,19 +11,19 @@ type SidebarProps = {
 
 const Sidebar: React.FC<SidebarProps> = ({ setPage }) => {
   const [open, setOpen] = React.useState(false);
-  
-  function toggleMenu () {
+
+  function toggleMenu() {
     setOpen(!open);
-  };
+  }
 
   return (
     <div>
-      <Button onClick={toggleMenu}>
-        <img src="./menu.png" alt="" />
-      </Button>
-      <Drawer open={open}>
+      <IconButton onClick={toggleMenu}>
+        <MenuBookIcon />
+      </IconButton>
+      <Drawer open={open} onClose={() => setOpen(false)}>
         <div className="bg-gray-800 h-screen w-64 border border-red-500 overflow-scroll">
-          <LessonsList toggleMenu={toggleMenu}/>
+          <LessonsList toggleMenu={toggleMenu} />
           <Nav setPage={setPage} toggleMenu={toggleMenu} />
         </div>
       </Drawer>

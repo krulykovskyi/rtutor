@@ -6,6 +6,7 @@ import HomePage from "./ui/pages/HomePage";
 import LearningPage from "./ui/pages/LearningPage";
 import SettingsPage from "./ui/pages/SettingsPage";
 import ProfilePage from "./ui/pages/ProfilePage";
+import Paper from "@mui/material/Paper";
 import "./App.css";
 
 export type PageKey = "home" | "learning" | "settings" | "profile";
@@ -48,10 +49,11 @@ function App() {
   }
 
   return (
-    <div className="app bg-gray-900 w-1/1 flex p-1">
+    // add bg color dark with tailwind
+    <Paper className="h-screen bg-gray-800">
       <Sidebar setPage={setActivePage} />
       <Page />
-    </div>
+    </Paper>
   );
 }
 
