@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
-import { useAppContext } from '../../contexts/AppContext';
-import { useTauriAPI } from '../../hooks/useTauriApi';
-import { Settings } from '../../types/Settings';
-import Button from '@mui/material/Button';
-import _ from 'lodash';
+import React, { useState } from "react";
+import { useAppContext } from "../../contexts/AppContext";
+import { useTauriAPI } from "../../hooks/useTauriApi";
+import { Settings } from "../../types/Settings";
+import Button from "@mui/material/Button";
+import _ from "lodash";
 import Paper from "@mui/material/Paper";
 
 const availableSettings: { [key: string]: string[] } = {
-  lang: ['en', 'ua', 'pl'],
-  theme: ['light', 'dark'],
+  lang: ["en", "ua", "pl"],
+  theme: ["light", "dark"],
 };
 
 const SettingsPage: React.FC = () => {
@@ -18,7 +18,7 @@ const SettingsPage: React.FC = () => {
   const [wasSaved, setWasSaved] = useState(true);
 
   return (
-    <Paper className='m-3 mt-10 p-3'>
+    <Paper className="m-3 mt-10 p-3">
       {Object.keys(availableSettings).map((key) => (
         <label>
           {key}
@@ -40,14 +40,17 @@ const SettingsPage: React.FC = () => {
       <Button
         disabled={_.isEqual(settings, state.data.settings)}
         variant="contained"
-        onClick={() => dispatch({ type: 'UPDATE_SETTINGS', payload: settings })}
+        onClick={() => dispatch({ type: "UPDATE_SETTINGS", payload: settings })}
       >
         apply settings
       </Button>
       <Button
         disabled={_.isEqual(wasSaved, true)}
         variant="contained"
-        onClick={() => updateSettings(settings)}
+        onClick={() => {
+          dispatch({ type: "UPDATE_SETTINGS", payload: settings });
+          updateSettings(settings);
+        }}
       >
         save settings
       </Button>
