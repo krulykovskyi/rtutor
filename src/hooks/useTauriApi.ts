@@ -3,7 +3,7 @@ import { useAppContext } from "../contexts/AppContext";
 import { AppAction, AppData } from "../types/AppState";
 import { Settings } from "../types/Settings";
 
-const cathErr = (error: any, dispatch: React.Dispatch<AppAction>) => {
+const catchErr = (error: any, dispatch: React.Dispatch<AppAction>) => {
   if (error instanceof Error) {
     dispatch({ type: "APP_ERR", payload: error.message });
   } else {
@@ -22,7 +22,7 @@ export const useTauriAPI = () => {
 
       dispatch({ type: "STARTUP", payload: data });
     } catch (error) {
-      cathErr(error, dispatch);
+      catchErr(error, dispatch);
     }
   };
 
@@ -36,7 +36,7 @@ export const useTauriAPI = () => {
 
       dispatch({ type: "INVOKE_API_OK" });
     } catch (error) {
-      cathErr(error, dispatch);
+      catchErr(error, dispatch);
     }
   };
 

@@ -11,7 +11,7 @@ export const lessonReducer = (
       return { ...state, loading: false, error: null };
     case "LESSON_ERR":
       return { ...state, loading: false, error: action.payload };
-    case "GET_LESSON":
+    case "SET_LESSON":
       return { ...state, lesson: action.payload, loading: false, error: null };
     case "ASK_QUESTION":
       return {

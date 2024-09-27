@@ -1,7 +1,8 @@
 export type Lesson = {
   id: string | null;
-  questions: Question[] | null;
-  notes: Note[] | null;
+  theme: string | null;
+  questions: Question[] | [];
+  notes: Note[] | [];
 };
 
 export type Question = {

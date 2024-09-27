@@ -1,22 +1,21 @@
-use std::{collections::HashMap, path::PathBuf};
+use crate::{db::DB, settings::Settings};
+use std::sync::Mutex;
 
 pub struct AppState {
-    pub db_dir: PathBuf,
-    pub db_files_paths: HashMap<String, PathBuf>,
+    pub db: DB,
+    pub settings: Mutex<Settings>,
 }
 
 impl AppState {
-    pub fn new(db_dir: PathBuf) -> Self {
-        let mut db_files_paths = HashMap::new();
-
-        db_files_paths.insert("settings".to_string(), db_dir.join("settings.json"));
-        db_files_paths.insert("lessons_list".to_string(), db_dir.join("lessons_list.json"));
-        db_files_paths.insert("lessons".to_string(), db_dir.join("lessons.json"));
-        db_files_paths.insert("notes".to_string(), db_dir.join("notes.json"));
-
+    pub fn new(db: DB, settings: Settings) -> Self {
         Self {
-            db_dir,
-            db_files_paths,
+            db,
+            settings: Mutex::new(settings),
         }
+    }
+
+    pub fn set_settings(&mut self, settings: Settings) {
+        let mut settings_lock = self.settings.lock().unwrap();
+        *settings_lock = settings;
     }
 }

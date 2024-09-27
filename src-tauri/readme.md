@@ -1,13 +1,14 @@
 # Rust Backend with JSON files database
 
 ## Files structure
-system-related-root-folder/db 
-    -> /settings.json
-    -> /lessons_list.json
-    -> /lessons
-        -> /0.json
-        -> /1.json
-        -> ...
+
+system-related-root-folder/db
+-> /settings.json
+-> /lessons_list.json
+-> /lessons
+-> /0.json
+-> /1.json
+-> ...
 
 ## Data structures:
 
@@ -22,7 +23,7 @@ pub struct Settings {
 }
 ```
 
-### LessonsList (stores in lessons_list.json)
+### LessonsList (stores in lessons_list.json, used for menu sidebar and progress tracking)
 
 ```rust
 type LessonsList = Vec<LessonsListItem>;
@@ -41,6 +42,7 @@ struct LessonsListItem {
 struct Lesson {
     id: String, // Basic lessons IDs is just an index of BASIC_RUST_LESSONS constant
                 // IDs of lessons created by user is a uuid v4 string
+    theme: String, // Title from LessonsList
     questions: Vec<Question>,
     notes: Vec<Note>,
 }
@@ -53,7 +55,7 @@ struct Question {
     lesson_id: String,
     user_question: String,
     tutor_answer: String,
-    timestamp: u64,
+    timestamp: u128,
 }
 ```
 
@@ -63,20 +65,27 @@ struct Question {
 struct Note {
     lesson_id: String,
     text: String,
-    timestamp: u64,
+    timestamp: u128,
 }
 ```
 
 ## Interacting with the database
+
 ...
 
 ### Reading data
+
 ...
+
 ### Writing data
+
 ...
+
 ## Run project
+
 ...
-1. 
-2. 
-3. 
-4. 
+
+1.
+2.
+3.
+4.

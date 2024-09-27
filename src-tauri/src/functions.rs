@@ -1,77 +1,27 @@
+use crate::app_state::AppState;
 use openai::chat::{ChatCompletion, ChatCompletionMessage, ChatCompletionMessageRole};
-use serde_json::{to_string, Value};
-use std::{
-    fs::{create_dir_all, read_to_string, File},
-    io::{Result, Write},
-};
 
-use crate::{
-    app_state::AppState,
-    lessons_list::{LessonsList, LessonsListItem, BASIC_RUST_LESSONS},
-    settings::Settings,
-};
-
-pub fn setup_db(state: &AppState) -> Result<()> {
-    let db_dir = &state.db_dir;
-    let db_files_paths = &state.db_files_paths;
-
-    if !db_dir.exists() {
-        create_dir_all(&db_dir).expect("Не удалось создать директорию базы данных");
-
-        db_files_paths
-            .iter()
-            .for_each(|(filename, path)| match filename.as_str() {
-                "settings" => {
-                    let mut file = File::create(path).expect("Не удалось создать файл настроек");
-                    let initial_settings = Settings {
-                        lang: String::from("en"),
-                        theme: String::from("dark"),
-                    };
-                    let json_data = to_string(&initial_settings).unwrap();
-
-                    file.write_all(json_data.as_bytes()).unwrap();
-                }
-                "lessons_list" => {
-                    let mut file =
-                        File::create(path).expect("Не удалось создать файл списка уроков");
-                    let initial_lessons_list: LessonsList = BASIC_RUST_LESSONS
-                        .iter()
-                        .enumerate()
-                        .map(|(index, title)| LessonsListItem {
-                            id: index.to_string(),
-                            title: title.to_string(),
-                            completed: false,
-                        })
-                        .collect();
-                    let json_data = to_string(&initial_lessons_list).unwrap();
-
-                    file.write_all(json_data.as_bytes()).unwrap();
-                }
-                _ => {
-                    // Create empty file
-                    let mut file = File::create(path)
-                        .expect(("Не удалось создать файл".to_string() + filename).as_str());
-
-                    file.write_all("{}".as_bytes()).unwrap();
-                }
-            });
-
-        Ok(())
-    } else {
-        Ok(())
-    }
-}
-
-pub fn read_db_file(filename: &str, state: &AppState) -> Result<Value> {
-    let filepath = state
-        .db_files_paths
-        .get(filename)
-        .ok_or(format!("{} path not found", filename))
-        .unwrap();
-    let data_string = read_to_string(filepath).unwrap();
-    let value: Value = serde_json::from_str(&data_string).unwrap();
-
-    Ok(value)
+pub async fn explain_lesson_theme<'a>(
+    state: tauri::State<'a, AppState>,
+    theme: String,
+) -> Result<String, String> {
+    let question = match (*(state.settings.lock().unwrap())).lang.as_str() {
+        "ua" => format!(
+            "Детально поясни тему \"{}\" в мові програмування Rust",
+            theme
+        ),
+        "en" => format!(
+            "Explain the theme \"{}\" in the Rust programming language in details",
+            theme
+        ),
+        "pl" => format!(
+            "Wyjaśnij temat \"{}\" w języku programowania Rust w szczegółach",
+            theme
+        ),
+        _ => return Err("Unsupported language".to_string()),
+    };
+    let answer = call_openai_api(question).await;
+    Ok(format!("{}", answer))
 }
 
 pub async fn call_openai_api(message: String) -> String {

@@ -10,6 +10,6 @@ export type LessonAction =
   | { type: "LOADING_START" }
   | { type: "LOADING_OK" }
   | { type: "LESSON_ERR"; payload: string }
-  | { type: "GET_LESSON"; payload: Lesson }
+  | { type: "SET_LESSON"; payload: Lesson }
   | { type: "ASK_QUESTION"; payload: Question }
   | { type: "SAVE_NOTE"; payload: Note };

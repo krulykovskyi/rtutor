@@ -3,8 +3,8 @@
 
 use dotenvy::dotenv;
 use openai::{set_base_url, set_key};
-use rtutor::{app_state::AppState, commands, functions::setup_db};
-use std::env;
+use rtutor::{app_state::AppState, commands, db::DB};
+use std::{env, sync::Mutex};
 use tauri::Manager;
 
 fn main() {
@@ -21,9 +21,15 @@ fn main() {
 
             let db_dirname = env::var("DB_DIRNAME").unwrap();
 
-            let state = AppState::new(app_dir.join(db_dirname));
+            let db = DB::new(app_dir.join(db_dirname));
 
-            setup_db(&state);
+            db.setup_db(true).unwrap();
+
+            let settings = db.get_settings();
+            let state = AppState {
+                db,
+                settings: Mutex::new(settings),
+            };
 
             app.manage(state);
             Ok(())
@@ -31,6 +37,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             commands::get_startup_data,
             commands::update_settings,
+            commands::get_lesson,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
