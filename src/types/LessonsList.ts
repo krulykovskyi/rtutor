@@ -1,5 +1,6 @@
 export type LessonsList = {
-    id: string,
-    title: string,
-    completed: boolean,
+  id: number;
+  theme: string;
+  startedAt: number | null;
+  finishedAt: number | null;
 }[];

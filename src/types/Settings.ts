@@ -1,4 +1,7 @@
 export type Settings = {
-    lang: "en" | "ua" | "pl",
-    theme: "light" | "dark"
-}
+  id: number;
+  name: string;
+  value: string;
+  componentType: "select" | "input" | "checkbox";
+  possibleValues: string | null;
+}[];

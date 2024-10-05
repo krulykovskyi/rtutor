@@ -1,19 +1,22 @@
 export type Lesson = {
-  id: string | null;
-  theme: string | null;
-  questions: Question[] | [];
-  notes: Note[] | [];
+  id: number;
+  theme: string;
+  explanation: string | null;
+  questionsIds: number[] | null;
+  notesIds: number[] | null;
+  startedAt: number | null;
+  finishedAt: number | null;
 };
 
 export type Question = {
   lessonId: Lesson["id"];
-  userQuestion: string;
-  tutorAnswer: string | null;
+  text: string;
+  answer: string;
   timestamp: number;
 };
 
 export type Note = {
   lessonId: Lesson["id"];
   text: string;
-  timestamp: number;
+  editedAt: number;
 };

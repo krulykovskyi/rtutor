@@ -1,14 +1,3 @@
-use serde::{Deserialize, Serialize};
-
-pub type LessonsList = Vec<LessonsListItem>;
-
-#[derive(Serialize, Deserialize)]
-pub struct LessonsListItem {
-    pub id: String,
-    pub title: String,
-    pub completed: bool,
-}
-
 pub const BASIC_RUST_LESSONS: [&str; 20] = [
     "Basic syntax and program structure",
     "Variables, data types, and constants",

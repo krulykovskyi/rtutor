@@ -13,29 +13,7 @@ export const lessonReducer = (
       return { ...state, loading: false, error: action.payload };
     case "SET_LESSON":
       return { ...state, lesson: action.payload, loading: false, error: null };
-    case "ASK_QUESTION":
-      return {
-        ...state,
-        lesson: {
-          ...state.lesson,
-          questions: state.lesson.questions
-            ? [...state.lesson.questions, action.payload]
-            : [action.payload],
-        },
-        loading: false,
-        error: null,
-      };
-    case "SAVE_NOTE":
-      return {
-        ...state,
-        lesson: {
-          ...state.lesson,
-          notes: state.lesson.notes
-            ? [...state.lesson.notes, action.payload]
-            : [action.payload],
-        },
-        loading: false,
-        error: null,
-      };
+    default:
+      return state;
   }
 };

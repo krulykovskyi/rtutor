@@ -4,10 +4,7 @@ import { appReducer } from "../reducers/AppReducer";
 
 const initialState: AppState = {
   data: {
-    settings: {
-      lang: "en",
-      theme: "dark",
-    },
+    settings: [],
     lessonsList: [],
     currentLessonId: null,
   },

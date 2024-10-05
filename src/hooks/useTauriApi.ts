@@ -19,6 +19,7 @@ export const useTauriAPI = () => {
       dispatch({ type: "INVOKE_API" });
 
       const data: AppData = await invoke("get_startup_data");
+      console.log("STARTUP DATA:", data);
 
       dispatch({ type: "STARTUP", payload: data });
     } catch (error) {

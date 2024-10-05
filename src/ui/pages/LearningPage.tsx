@@ -3,7 +3,8 @@ import Paper from "@mui/material/Paper";
 import { useLesson } from "../../hooks/useLesson";
 import { useAppContext } from "../../contexts/AppContext";
 import LessonProvider, { useLessonContext } from "../../contexts/LessonContext";
-import { Question } from "../../types/Lesson";
+import MarkdownPreview from "@uiw/react-markdown-preview";
+import Typography from "@mui/material/Typography";
 
 const Lesson: React.FC = () => {
   const { state: appState } = useAppContext();
@@ -11,7 +12,7 @@ const Lesson: React.FC = () => {
   const { getLesson } = useLesson();
 
   useEffect(() => {
-    getLesson(appState.data.currentLessonId as string);
+    getLesson(appState.data.currentLessonId as number);
   }, [appState.data.currentLessonId]);
 
   if (lessonState.loading) {
@@ -19,19 +20,15 @@ const Lesson: React.FC = () => {
   }
 
   return (
-    <Paper>
-      <h1>Lesson</h1>
-      <div>
-        {lessonState.lesson.questions?.map(
-          ({ userQuestion, tutorAnswer, timestamp }: Question) => (
-            <>
-              <div>{userQuestion}</div>
-              <div>{tutorAnswer}</div>
-              <div>{timestamp}</div>
-            </>
-          )
-        )}
-      </div>
+    <Paper className="m-3 mt-5 p-4">
+      <Typography className="text-right uppercase italic p-2" variant="h6">
+        {lessonState.lesson.theme}
+      </Typography>
+      <MarkdownPreview
+        source={lessonState.lesson.explanation as string}
+        wrapperElement={{ "data-color-mode": "light" }}
+      />
+      <h2>Questions</h2>
     </Paper>
   );
 };

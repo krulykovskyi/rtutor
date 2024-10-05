@@ -15,17 +15,16 @@ const LessonsList: React.FC<LessonsListProps> = ({ toggleMenu }) => {
           key={item.id}
           className={`
             ${item.id === currentLessonId && "current-lesson"}
-            ${item.completed && "completed"}
+            ${item.finishedAt && "finished"}
             mb-2 cursor-pointer
           `}
-          onClick={() =>{
-            toggleMenu()
-            dispatch({ type: "SET_CURRENT_LESSON_ID", payload: item.id })
-          }
-          }
+          onClick={() => {
+            toggleMenu();
+            dispatch({ type: "SET_CURRENT_LESSON_ID", payload: item.id });
+          }}
         >
           <span>{i + 1}. </span>
-          <span className="underline">{item.title}</span>
+          <span className="underline">{item.theme}</span>
         </li>
       ))}
     </ul>

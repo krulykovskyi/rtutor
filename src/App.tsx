@@ -8,6 +8,7 @@ import SettingsPage from "./ui/pages/SettingsPage";
 import ProfilePage from "./ui/pages/ProfilePage";
 import Paper from "@mui/material/Paper";
 import "./App.css";
+import Typography from "@mui/material/Typography";
 
 export type PageKey = "home" | "learning" | "settings" | "profile";
 type PageComponent =
@@ -49,9 +50,11 @@ function App() {
   }
 
   return (
-    // add bg color dark with tailwind
     <Paper className="h-screen bg-gray-800">
       <Sidebar setPage={setActivePage} />
+      <Typography className="text-right uppercase p-2" variant="h6">
+        {activePage}
+      </Typography>
       <Page />
     </Paper>
   );

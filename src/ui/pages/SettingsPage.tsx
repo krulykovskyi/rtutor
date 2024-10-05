@@ -2,14 +2,10 @@ import React, { useState } from "react";
 import { useAppContext } from "../../contexts/AppContext";
 import { useTauriAPI } from "../../hooks/useTauriApi";
 import { Settings } from "../../types/Settings";
+import SettingRow from "../blocks/SettingRow";
 import Button from "@mui/material/Button";
 import _ from "lodash";
 import Paper from "@mui/material/Paper";
-
-const availableSettings: { [key: string]: string[] } = {
-  lang: ["en", "ua", "pl"],
-  theme: ["light", "dark"],
-};
 
 const SettingsPage: React.FC = () => {
   const { state, dispatch } = useAppContext();
@@ -17,43 +13,43 @@ const SettingsPage: React.FC = () => {
   const { updateSettings } = useTauriAPI();
   const [wasSaved, setWasSaved] = useState(true);
 
+  const changeSettings = (newSetting: Settings[number]) => {
+    setSettings(
+      settings.map((setting) =>
+        setting.id === newSetting.id ? newSetting : setting
+      )
+    );
+    setWasSaved(false);
+  };
+
   return (
-    <Paper className="m-3 mt-10 p-3">
-      {Object.keys(availableSettings).map((key) => (
-        <label>
-          {key}
-          <select
-            value={settings[key as keyof Settings]}
-            onChange={(e) => {
-              setSettings({ ...settings, [key]: e.target.value });
-              setWasSaved(false);
-            }}
-          >
-            {availableSettings[key].map((value) => (
-              <option key={value} value={value}>
-                {value}
-              </option>
-            ))}
-          </select>
-        </label>
-      ))}
-      <Button
-        disabled={_.isEqual(settings, state.data.settings)}
-        variant="contained"
-        onClick={() => dispatch({ type: "UPDATE_SETTINGS", payload: settings })}
-      >
-        apply settings
-      </Button>
-      <Button
-        disabled={_.isEqual(wasSaved, true)}
-        variant="contained"
-        onClick={() => {
-          dispatch({ type: "UPDATE_SETTINGS", payload: settings });
-          updateSettings(settings);
-        }}
-      >
-        save settings
-      </Button>
+    <Paper className="m-3 mt-5 p-4">
+      <div className="flex flex-col">
+        {settings.map((setting) => (
+          <SettingRow setting={setting} changeSettings={changeSettings} />
+        ))}
+      </div>
+      <div>
+        <Button
+          disabled={_.isEqual(settings, state.data.settings)}
+          variant="contained"
+          onClick={() =>
+            dispatch({ type: "UPDATE_SETTINGS", payload: settings })
+          }
+        >
+          apply settings
+        </Button>
+        <Button
+          disabled={wasSaved}
+          variant="contained"
+          onClick={() => {
+            dispatch({ type: "UPDATE_SETTINGS", payload: settings });
+            updateSettings(settings);
+          }}
+        >
+          save settings
+        </Button>
+      </div>
     </Paper>
   );
 };

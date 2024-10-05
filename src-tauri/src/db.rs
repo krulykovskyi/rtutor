@@ -1,162 +1,329 @@
 use crate::{
-    lesson::Lesson,
-    lessons_list::{LessonsList, LessonsListItem, BASIC_RUST_LESSONS},
-    settings::Settings,
+    structs::*,
+    constants::BASIC_RUST_LESSONS,
 };
-use serde_json::{from_str, Value};
+use rusqlite::{params, Connection, Error as SqliteErr, OptionalExtension, Result as SqliteResult};
 use std::{
-    collections::HashMap,
-    fs::{create_dir_all, read_to_string, remove_dir_all, remove_file, File},
-    io::{Result, Write},
+    fs::{create_dir_all, remove_dir_all},
     path::PathBuf,
 };
 
 pub struct DB {
     pub db_dir: PathBuf,
-    pub db_dirs_paths: HashMap<String, PathBuf>,
-    pub db_files_paths: HashMap<String, PathBuf>,
+    pub sql_db: PathBuf,
 }
 
 impl DB {
     pub fn new(db_dir: PathBuf) -> Self {
-        let mut db_dirs_paths = HashMap::new();
-
-        db_dirs_paths.insert("lessons".to_string(), db_dir.join("lessons"));
-
-        let mut db_files_paths = HashMap::new();
-
-        db_files_paths.insert("settings".to_string(), db_dir.join("settings.json"));
-        db_files_paths.insert("lessons_list".to_string(), db_dir.join("lessons_list.json"));
-
-        Self {
-            db_dir,
-            db_dirs_paths,
-            db_files_paths,
-        }
+        let sql_db = db_dir.join("db.db");
+        Self { db_dir, sql_db }
     }
 
-    pub fn setup_db(&self, is_dev_mod: bool) -> Result<()> {
-        // Delete db directory if dev mode is enabled
-        if is_dev_mod && self.db_dir.exists() {
-            remove_dir_all(&self.db_dir).expect("Не удалось удалить директорию базы данных");
+    pub fn connect(&self) -> SqliteResult<Connection, SqliteErr> {
+        Connection::open(&self.sql_db)
+    }
+
+    fn create_settings_table(&self) -> SqliteResult<(), SqliteErr> {
+        let connection = self.connect()?;
+
+        connection.execute(
+            "CREATE TABLE IF NOT EXISTS settings (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT UNIQUE NOT NULL,
+                value TEXT UNIQUE NOT NULL,
+                component_type TEXT NOT NULL,
+                possible_values TEXT
+            )",
+            [],
+        )?;
+
+        connection.execute(
+            "INSERT INTO settings (name, value, component_type) 
+            VALUES ('user_name', 'User', 'input')",
+            []
+        )?;
+
+        let mut stmt = connection.prepare(
+            "INSERT INTO settings (name, value, component_type, possible_values) 
+            VALUES (?, ?, ?, ?)",
+        )?;
+
+        let settings_to_insert = vec![
+            ("notifications", "on", "checkbox", "on,off"),
+            ("lang", "en", "select", "en,ru,ua,pl"),
+            ("theme", "light", "select", "light,dark"),
+        ];
+
+        for setting in settings_to_insert {
+            stmt.execute([setting.0, setting.1, &setting.2.to_string(), setting.3])?;
         }
 
-        // Create db directory if it doesn't exist
+        Ok(())
+    }
+
+    fn create_lessons_table(&self) -> SqliteResult<()> {
+        let connection = self.connect()?;
+
+        connection.execute(
+            "CREATE TABLE IF NOT EXISTS lessons (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                theme TEXT NOT NULL,
+                explanation TEXT,
+                questions_ids TEXT,
+                notes_ids TEXT,
+                started_at INTEGER,
+                finished_at INTEGER
+            )",
+            [],
+        )?;
+
+        let mut stmt = connection.prepare(
+            "INSERT OR IGNORE INTO lessons (theme) 
+            VALUES (?)",
+        )?;
+
+        for lesson in BASIC_RUST_LESSONS.iter() {
+            stmt.execute([lesson])?;
+        }
+
+        Ok(())
+    }
+
+    fn create_questions_table(&self) -> SqliteResult<(), SqliteErr> {
+        self.connect()?.execute(
+            "CREATE TABLE IF NOT EXISTS questions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                lesson_id INTEGER NOT NULL,
+                user_question TEXT NOT NULL,
+                tutor_answer TEXT NOT NULL,
+                timestamp INTEGER
+            )",
+            [],
+        )?;
+
+        Ok(())
+    }
+
+    fn create_notes_table(&self) -> SqliteResult<(), SqliteErr> {
+        self.connect()?.execute(
+            "CREATE TABLE IF NOT EXISTS notes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                lesson_id INTEGER NOT NULL,
+                text TEXT NOT NULL,
+                edited_at INTEGER
+            )",
+            [],
+        )?;
+
+        Ok(())
+    }
+
+    pub fn setup_db(&self, is_dev: bool) -> SqliteResult<()> {
+        if is_dev {
+            if self.db_dir.exists() {
+                remove_dir_all(&self.db_dir);
+            }
+        }
+
         if !self.db_dir.exists() {
-            create_dir_all(&self.db_dir).expect("Не удалось создать директорию базы данных");
+            create_dir_all(&self.db_dir);
+
+            self.create_settings_table().unwrap_or_else(|e| {
+                println!("Failed to create settings table: {}", e);
+            });
+            self.create_lessons_table().unwrap_or_else(|e| {
+                println!("Failed to create lessons table: {}", e);
+            });
+            self.create_questions_table().unwrap_or_else(|e| {
+                println!("Failed to create questions table: {}", e);
+            });
+            self.create_notes_table().unwrap_or_else(|e| {
+                println!("Failed to create notes table: {}", e);
+            });
         }
 
-        // Create db directories if they don't exist
-        for (dirname, dirpath) in self.db_dirs_paths.iter() {
-            if !dirpath.exists() {
-                match dirname.as_str() {
-                    "lessons" => {
-                        create_dir_all(dirpath).expect("Не удалось создать директорию уроков");
-                    }
-                    _ => {}
-                }
+        Ok(())
+    }
+    
+    // Settings methods
+    pub fn read_settings(&self) -> SqliteResult<Vec<Setting>> {
+        let conn = self.connect()?;
+        let mut stmt = conn.prepare("SELECT * FROM settings")?;
+        let settings_iter = stmt.query_map([], |row| Setting::from_row(row))?;
+    
+        let mut settings = vec![];
+        for setting in settings_iter {
+            settings.push(setting?);
+        }
+    
+        SqliteResult::Ok(settings)
+    }
+
+    pub fn read_setting(&self, setting_name: &str) -> SqliteResult<String> {
+        let conn = self.connect()?;
+        let setting_value: String = conn.query_row(
+            format!("SELECT value FROM settings WHERE name = '{}'", setting_name).as_str(),
+            [],
+            |row| {
+                row.get(0)
             }
-        }
+        )?;
 
-        // Create db files if they don't exist
-        for (filename, filepath) in self.db_files_paths.iter() {
-            if !filepath.exists() {
-                match filename.as_str() {
-                    "settings" => {
-                        let settings = Settings {
-                            theme: "dark".to_string(),
-                            lang: "en".to_string(),
-                        };
-                        let settings = serde_json::to_string(&settings).unwrap();
+        SqliteResult::Ok(setting_value)
+    }
 
-                        self.create_file(filepath, settings);
-                    }
-                    "lessons_list" => {
-                        // Create basic Rust lessons list file ...
-                        let mut lessons_list: LessonsList = Vec::new();
+    pub fn update_setting(&self, setting: &Setting) -> SqliteResult<()> {
+        let conn = self.connect()?;
+        conn.execute(
+            "UPDATE settings SET value = ? WHERE name = ?",
+            params![setting.value, setting.name],
+        )?;
 
-                        BASIC_RUST_LESSONS
-                            .iter()
-                            .enumerate()
-                            .for_each(|(index, lesson)| {
-                                lessons_list.push(LessonsListItem {
-                                    id: index.to_string(),
-                                    title: lesson.to_string(),
-                                    completed: false,
-                                });
+        SqliteResult::Ok(())
+    }
 
-                                let lesson = Lesson::new(index.to_string(), lesson.to_string());
-                                let lessons_filepath = self.db_dirs_paths.get("lessons").unwrap();
-                                let lesson_filepath =
-                                    lessons_filepath.join(format!("{}.json", index));
+    // Lesson methods
+    pub fn create_lesson(&self, lesson: &Lesson) -> SqliteResult<i64> {
+        let conn = self.connect()?;
+        conn.execute(
+            "INSERT INTO lessons (theme, explanation, questions_ids, notes_ids, started_at, finished_at) 
+            VALUES (?, ?, ?, ?, ?, ?)",
+            params![lesson.theme, lesson.explanation, lesson.questions_ids, lesson.notes_ids, 
+                    lesson.started_at, lesson.finished_at],
+        )?;
+        Ok(conn.last_insert_rowid())
+    }
 
-                                // ... and separate file for each lesson
-                                self.create_file(
-                                    &lesson_filepath,
-                                    serde_json::to_string(&lesson).unwrap(),
-                                );
-                            });
-                        let lessons_list = serde_json::to_string(&lessons_list).unwrap();
+    pub fn read_lesson(&self, id: usize) -> SqliteResult<Lesson> {
+        let conn = self.connect()?;
+        let mut stmt = conn.prepare(
+            "SELECT id, theme, explanation, questions_ids, notes_ids, started_at, finished_at 
+            FROM lessons WHERE id = ?"
+        )?;
+        let lesson = stmt.query_row(params![id], |row| {
+            Ok(Lesson {
+                id: row.get(0)?,
+                theme: row.get(1)?,
+                explanation: row.get(2)?,
+                questions_ids: row.get(3)?,
+                notes_ids: row.get(4)?,
+                started_at: row.get(5)?,
+                finished_at: row.get(6)?,
+            })
+        }).optional()?;
 
-                        self.create_file(filepath, lessons_list);
-                    }
-                    _ => {}
-                }
-            }
-        }
+        SqliteResult::Ok(lesson.unwrap())
+    }
 
+    pub fn update_lesson(&self, lesson: &Lesson) -> SqliteResult<()> {
+        let conn = self.connect()?;
+        conn.execute(
+            "UPDATE lessons SET theme = ?, explanation = ?, questions_ids = ?, notes_ids = ?, 
+            started_at = ?, finished_at = ? WHERE id = ?",
+            params![
+                lesson.theme,
+                lesson.explanation,
+                lesson.questions_ids,
+                lesson.notes_ids,
+                lesson.started_at,
+                lesson.finished_at,
+                lesson.id
+            ],
+        ).unwrap();
         Ok(())
     }
 
-    pub fn create_file(&self, filepath: &PathBuf, data: String) -> Result<()> {
-        let mut file = File::create(filepath).expect("Не удалось создать файл");
-
-        file.write(data.as_bytes())
-            .expect("Не удалось записать данные в файл");
-
+    pub fn delete_lesson(&self, id: usize) -> SqliteResult<()> {
+        let conn = self.connect()?;
+        conn.execute("DELETE FROM lessons WHERE id = ?", params![id])?;
         Ok(())
     }
 
-    pub fn read_file(&self, filename: &str) -> Result<Value> {
-        let filepath = self
-            .db_files_paths
-            .get(filename)
-            .ok_or(format!("{} path not found", filename))
-            .unwrap();
-        let data_string = read_to_string(filepath).unwrap();
-        let value: Value = from_str(&data_string).unwrap();
-
-        Ok(value)
+    // Question methods
+    pub fn create_question(&self, question: &Question) -> SqliteResult<i64> {
+        let conn = self.connect()?;
+        conn.execute(
+            "INSERT INTO questions (lesson_id, user_question, tutor_answer, timestamp) 
+            VALUES (?, ?, ?, ?)",
+            params![question.lesson_id, question.user_question, question.tutor_answer, question.timestamp],
+        )?;
+        Ok(conn.last_insert_rowid())
     }
 
-    pub fn update_file(&self, filepath: &PathBuf, data: &Value) {}
+    pub fn read_question(&self, id: usize) -> SqliteResult<Option<Question>> {
+        let conn = self.connect()?;
+        let mut stmt = conn.prepare(
+            "SELECT id, lesson_id, user_question, tutor_answer, timestamp 
+            FROM questions WHERE id = ?"
+        )?;
+        let question = stmt.query_row(params![id], |row| {
+            Ok(Question {
+                id: row.get(0)?,
+                lesson_id: row.get(1)?,
+                user_question: row.get(2)?,
+                tutor_answer: row.get(3)?,
+                timestamp: row.get(4)?,
+            })
+        }).optional()?;
+        Ok(question)
+    }
 
-    pub fn delete_file(&self, filename: &str) -> std::result::Result<(), String> {
-        let filepath = self
-            .db_files_paths
-            .get(filename)
-            .ok_or("Filepath path not found")?;
-
-        remove_file(filepath).map_err(|e| e.to_string())?;
-
+    pub fn update_question(&self, question: &Question) -> SqliteResult<()> {
+        let conn = self.connect()?;
+        conn.execute(
+            "UPDATE questions SET lesson_id = ?, user_question = ?, tutor_answer = ?, timestamp = ? 
+            WHERE id = ?",
+            params![question.lesson_id, question.user_question, question.tutor_answer, 
+                    question.timestamp, question.id],
+        )?;
         Ok(())
     }
 
-    pub fn get_settings(&self) -> Settings {
-        let settings: Value = self.read_file("settings").unwrap();
-        let settings: Settings = serde_json::from_value(settings).unwrap();
-
-        settings
+    pub fn delete_question(&self, id: usize) -> SqliteResult<()> {
+        let conn = self.connect()?;
+        conn.execute("DELETE FROM questions WHERE id = ?", params![id])?;
+        Ok(())
     }
 
-    pub fn get_lesson(&self, lesson_id: String) -> Lesson {
-        let lessons_filepath = self.db_dirs_paths.get("lessons").unwrap();
-        let lesson_filepath = lessons_filepath.join(format!("{}.json", lesson_id));
+    // Note methods
+    pub fn create_note(&self, note: &Note) -> SqliteResult<i64> {
+        let conn = self.connect()?;
+        conn.execute(
+            "INSERT INTO notes (lesson_id, text, edited_at) VALUES (?, ?, ?)",
+            params![note.lesson_id, note.text, note.edited_at],
+        )?;
+        Ok(conn.last_insert_rowid())
+    }
 
-        let lesson_string = read_to_string(lesson_filepath).unwrap();
-        let lesson: Value = from_str(&lesson_string).unwrap();
-        let lesson: Lesson = serde_json::from_value(lesson).unwrap();
+    pub fn read_note(&self, id: usize) -> SqliteResult<Option<Note>> {
+        let conn = self.connect()?;
+        let mut stmt = conn.prepare(
+            "SELECT id, lesson_id, text, edited_at FROM notes WHERE id = ?"
+        )?;
+        let note = stmt.query_row(params![id], |row| {
+            Ok(Note {
+                id: row.get(0)?,
+                lesson_id: row.get(1)?,
+                text: row.get(2)?,
+                edited_at: row.get(3)?,
+            })
+        }).optional()?;
+        Ok(note)
+    }
 
-        lesson
+    pub fn update_note(&self, note: &Note) -> SqliteResult<()> {
+        let conn = self.connect()?;
+        conn.execute(
+            "UPDATE notes SET lesson_id = ?, text = ?, edited_at = ? WHERE id = ?",
+            params![note.lesson_id, note.text, note.edited_at, note.id],
+        )?;
+        Ok(())
+    }
+
+    pub fn delete_note(&self, id: usize) -> SqliteResult<()> {
+        let conn = self.connect()?;
+        conn.execute("DELETE FROM notes WHERE id = ?", params![id])?;
+        Ok(())
     }
 }
+

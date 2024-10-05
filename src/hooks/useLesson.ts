@@ -14,11 +14,12 @@ const catchErr = (error: any, dispatch: React.Dispatch<LessonAction>) => {
 export const useLesson = () => {
   const { dispatch } = useLessonContext();
 
-  const getLesson = async (lessonId: string) => {
+  const getLesson = async (lessonId: number) => {
     try {
       dispatch({ type: "LOADING_START" });
 
       const lesson: Lesson = await invoke("get_lesson", { lessonId });
+      console.log("LESSON:", lesson);
 
       dispatch({ type: "SET_LESSON", payload: lesson });
     } catch (error) {

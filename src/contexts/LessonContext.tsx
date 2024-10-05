@@ -4,10 +4,13 @@ import { lessonReducer } from "../reducers/LessonReducer";
 
 const initialState: LessonState = {
   lesson: {
-    id: null,
-    theme: null,
-    questions: [],
-    notes: [],
+    id: 0,
+    theme: "",
+    explanation: null,
+    questionsIds: null,
+    notesIds: null,
+    startedAt: null,
+    finishedAt: null,
   },
   loading: false,
   error: null,

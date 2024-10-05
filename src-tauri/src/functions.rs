@@ -1,26 +1,55 @@
-use crate::app_state::AppState;
+use crate::{
+    db::DB,
+    structs::{Lesson, LessonsList, LessonsListItem},
+};
 use openai::chat::{ChatCompletion, ChatCompletionMessage, ChatCompletionMessageRole};
+use rusqlite::Result as SqliteResult;
+use std::time::{SystemTime, UNIX_EPOCH};
 
-pub async fn explain_lesson_theme<'a>(
-    state: tauri::State<'a, AppState>,
-    theme: String,
-) -> Result<String, String> {
-    let question = match (*(state.settings.lock().unwrap())).lang.as_str() {
+pub fn get_lessons_list(db: &DB) -> SqliteResult<LessonsList> {
+    let conn = db.connect()?;
+    let mut stmt = conn.prepare("SELECT id, theme, started_at, finished_at FROM lessons")?;
+    let lessons_iter = stmt.query_map([], |row| LessonsListItem::from_row(row))?;
+
+    let mut lessons_list = vec![];
+    for lesson_list_item in lessons_iter {
+        lessons_list.push(lesson_list_item?);
+    }
+
+    SqliteResult::Ok(lessons_list)
+}
+
+pub async fn explain_lesson_theme(db: &DB, lesson: &mut Lesson) -> Result<String, String> {
+    let question = match db.read_setting("lang").unwrap().as_str() {
         "ua" => format!(
             "Детально поясни тему \"{}\" в мові програмування Rust",
-            theme
+            lesson.theme
         ),
         "en" => format!(
             "Explain the theme \"{}\" in the Rust programming language in details",
-            theme
+            lesson.theme
         ),
         "pl" => format!(
             "Wyjaśnij temat \"{}\" w języku programowania Rust w szczegółach",
-            theme
+            lesson.theme
+        ),
+        "ru" => format!(
+            "Подробно объясни тему \"{}\" на языке программирования Rust",
+            lesson.theme
         ),
         _ => return Err("Unsupported language".to_string()),
     };
     let answer = call_openai_api(question).await;
+    let started_at = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_secs() as usize;
+
+    lesson.explanation = Some(answer.clone());
+    lesson.started_at = Some(started_at);
+
+    db.update_lesson(lesson).unwrap();
+
     Ok(format!("{}", answer))
 }
 

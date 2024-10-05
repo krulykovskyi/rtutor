@@ -1,5 +1,5 @@
-import Button from '@mui/material/Button';
-import { pageToComponent } from '../../App';
+import Button from "@mui/material/Button";
+import { pageToComponent } from "../../App";
 
 type NavProps = {
   setPage: Function;
@@ -11,7 +11,7 @@ const Nav: React.FC<NavProps> = ({ setPage, toggleMenu }) => {
     <nav className="flex flex-col gap-1">
       {Object.keys(pageToComponent).map((page) => (
         <Button
-          variant='outlined'
+          variant="outlined"
           key={page}
           onClick={() => {
             setPage(page);
