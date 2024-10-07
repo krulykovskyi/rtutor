@@ -1,12 +1,14 @@
-import React, { useEffect } from "react";
-import Paper from "@mui/material/Paper";
-import { useLesson } from "../../hooks/useLesson";
-import { useAppContext } from "../../contexts/AppContext";
-import LessonProvider, { useLessonContext } from "../../contexts/LessonContext";
-import MarkdownPreview from "@uiw/react-markdown-preview";
-import Typography from "@mui/material/Typography";
+import React, { useEffect } from 'react';
+import Paper from '@mui/material/Paper';
+import { useLesson } from '../../hooks/useLesson';
+import { useAppContext } from '../../contexts/AppContext';
+import LessonProvider, { useLessonContext } from '../../contexts/LessonContext';
+import MarkdownPreview from '@uiw/react-markdown-preview';
+import Typography from '@mui/material/Typography';
+import CircularLoading from '../components/CircularLoading';
 
 const Lesson: React.FC = () => {
+  return <CircularLoading />;
   const { state: appState } = useAppContext();
   const { state: lessonState } = useLessonContext();
   const { getLesson } = useLesson();
@@ -16,7 +18,7 @@ const Lesson: React.FC = () => {
   }, [appState.data.currentLessonId]);
 
   if (lessonState.loading) {
-    return <div>Loading...</div>;
+    return <CircularLoading />;
   }
 
   return (
@@ -26,7 +28,7 @@ const Lesson: React.FC = () => {
       </Typography>
       <MarkdownPreview
         source={lessonState.lesson.explanation as string}
-        wrapperElement={{ "data-color-mode": "light" }}
+        wrapperElement={{ 'data-color-mode': 'light' }}
       />
       <h2>Questions</h2>
     </Paper>
