@@ -1,6 +1,6 @@
 use crate::{
     db::DB,
-    structs::{Lesson, LessonsList, LessonsListItem},
+    structs::{Lesson, LessonsList, LessonsListItem, Question},
 };
 use openai::chat::{ChatCompletion, ChatCompletionMessage, ChatCompletionMessageRole};
 use rusqlite::Result as SqliteResult;
@@ -22,19 +22,19 @@ pub fn get_lessons_list(db: &DB) -> SqliteResult<LessonsList> {
 pub async fn explain_lesson_theme(db: &DB, lesson: &mut Lesson) -> Result<String, String> {
     let question = match db.read_setting("lang").unwrap().as_str() {
         "ua" => format!(
-            "Детально поясни тему \"{}\" в мові програмування Rust",
+            "Детально поясни тему \"{}\" в мові програмування Rust українською мовою",
             lesson.theme
         ),
         "en" => format!(
-            "Explain the theme \"{}\" in the Rust programming language in details",
+            "Explain the theme \"{}\" in the Rust programming language in details, in English",
             lesson.theme
         ),
         "pl" => format!(
-            "Wyjaśnij temat \"{}\" w języku programowania Rust w szczegółach",
+            "Wyjaśnij temat \"{}\" w języku programowania Rust w szczegółach, po polsku",
             lesson.theme
         ),
         "ru" => format!(
-            "Подробно объясни тему \"{}\" на языке программирования Rust",
+            "Подробно объясни тему \"{}\" на языке программирования Rust, на русском языке",
             lesson.theme
         ),
         _ => return Err("Unsupported language".to_string()),
@@ -62,7 +62,8 @@ pub async fn call_openai_api(message: String) -> String {
             Ты репетитор по языку программирования Rust.
             Ты отвечаешь коротко и детально разбираешь вопрос.
             Ты определяешь язык на котором был задан вопрос и отвечаешь на том же языке.
-            Ты всегда используешь самую актуальную документацию"
+            Ты всегда используешь самую актуальную документацию.
+            Ты приводишь примеры по сути вопроса."
                     .to_string(),
             ),
             name: None,
