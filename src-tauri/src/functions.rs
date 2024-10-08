@@ -40,10 +40,7 @@ pub async fn explain_lesson_theme(db: &DB, lesson: &mut Lesson) -> Result<String
         _ => return Err("Unsupported language".to_string()),
     };
     let answer = call_openai_api(question).await;
-    let started_at = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap()
-        .as_secs() as usize;
+    let started_at = get_timestamp_secs();
 
     lesson.explanation = Some(answer.clone());
     lesson.started_at = Some(started_at);
@@ -51,6 +48,25 @@ pub async fn explain_lesson_theme(db: &DB, lesson: &mut Lesson) -> Result<String
     db.update_lesson(lesson).unwrap();
 
     Ok(format!("{}", answer))
+}
+
+pub async fn answer_question(
+    db: &DB,
+    lesson_id: usize,
+    user_question: &String,
+) -> Result<Question, String> {
+    let tutor_answer = call_openai_api(user_question.clone()).await;
+    let mut question = Question {
+        id: 0,
+        lesson_id,
+        user_question: user_question.clone(),
+        tutor_answer,
+        timestamp: get_timestamp_secs(),
+    };
+
+    question = db.create_question(&mut question).unwrap();
+
+    Ok(question)
 }
 
 pub async fn call_openai_api(message: String) -> String {
@@ -85,4 +101,11 @@ pub async fn call_openai_api(message: String) -> String {
     let returned_message = chat_completion.choices.first().unwrap().message.clone();
 
     returned_message.content.clone().unwrap().trim().to_string()
+}
+
+pub fn get_timestamp_secs() -> usize {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_secs() as usize
 }

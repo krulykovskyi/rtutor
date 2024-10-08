@@ -233,90 +233,79 @@ impl DB {
         Ok(())
     }
 
-    pub fn delete_lesson(&self, id: usize) -> SqliteResult<()> {
-        let conn = self.connect()?;
-        conn.execute("DELETE FROM lessons WHERE id = ?", params![id])?;
-        Ok(())
-    }
-
     // Question methods
-    pub fn create_question(&self, question: &Question) -> SqliteResult<i64> {
+    pub fn create_question(&self, question: &mut Question) -> SqliteResult<Question> {
         let conn = self.connect()?;
         conn.execute(
             "INSERT INTO questions (lesson_id, user_question, tutor_answer, timestamp) 
             VALUES (?, ?, ?, ?)",
             params![question.lesson_id, question.user_question, question.tutor_answer, question.timestamp],
         )?;
-        Ok(conn.last_insert_rowid())
+        question.id = conn.last_insert_rowid() as usize;
+
+        let mut lesson = self.read_lesson(question.lesson_id).unwrap();
+
+        if lesson.questions_ids.is_none() {
+            lesson.questions_ids = Some(question.id.to_string());
+        } else {
+            lesson.questions_ids = Some(format!("{},{}", lesson.questions_ids.unwrap(), question.id));
+        }
+        
+        self.update_lesson(&lesson).unwrap();
+
+        SqliteResult::Ok(question.clone())
     }
 
-    pub fn read_question(&self, id: usize) -> SqliteResult<Option<Question>> {
+    pub fn read_question(&self, id: usize) -> SqliteResult<Question> {
         let conn = self.connect()?;
-        let mut stmt = conn.prepare(
-            "SELECT id, lesson_id, user_question, tutor_answer, timestamp 
-            FROM questions WHERE id = ?"
-        )?;
-        let question = stmt.query_row(params![id], |row| {
-            Ok(Question {
-                id: row.get(0)?,
-                lesson_id: row.get(1)?,
-                user_question: row.get(2)?,
-                tutor_answer: row.get(3)?,
-                timestamp: row.get(4)?,
-            })
-        }).optional()?;
-        Ok(question)
-    }
 
-    pub fn update_question(&self, question: &Question) -> SqliteResult<()> {
-        let conn = self.connect()?;
-        conn.execute(
-            "UPDATE questions SET lesson_id = ?, user_question = ?, tutor_answer = ?, timestamp = ? 
-            WHERE id = ?",
-            params![question.lesson_id, question.user_question, question.tutor_answer, 
-                    question.timestamp, question.id],
-        )?;
-        Ok(())
-    }
-
-    pub fn delete_question(&self, id: usize) -> SqliteResult<()> {
-        let conn = self.connect()?;
-        conn.execute("DELETE FROM questions WHERE id = ?", params![id])?;
-        Ok(())
+        conn.query_row(
+            format!("SELECT * FROM questions WHERE id = {}", id).as_str(), 
+            [], 
+            |row| Question::from_row(row)
+        )
     }
 
     // Note methods
-    pub fn create_note(&self, note: &Note) -> SqliteResult<i64> {
+    pub fn create_note(&self, note: &mut Note) -> SqliteResult<Note> {
         let conn = self.connect()?;
         conn.execute(
-            "INSERT INTO notes (lesson_id, text, edited_at) VALUES (?, ?, ?)",
+            "INSERT INTO notes (lesson_id, text, edited_at) 
+            VALUES (?, ?, ?)",
             params![note.lesson_id, note.text, note.edited_at],
         )?;
-        Ok(conn.last_insert_rowid())
+        note.id = conn.last_insert_rowid() as usize;
+
+        let mut lesson = self.read_lesson(note.lesson_id).unwrap();
+
+        if lesson.notes_ids.is_none() {
+            lesson.notes_ids = Some(note.id.to_string());
+        } else {
+            lesson.notes_ids = Some(format!("{},{}", lesson.notes_ids.unwrap(), note.id));
+        }
+        
+        self.update_lesson(&lesson).unwrap();
+
+        SqliteResult::Ok(note.clone())
     }
 
-    pub fn read_note(&self, id: usize) -> SqliteResult<Option<Note>> {
+    pub fn read_note(&self, id: usize) -> SqliteResult<Note> {
         let conn = self.connect()?;
-        let mut stmt = conn.prepare(
-            "SELECT id, lesson_id, text, edited_at FROM notes WHERE id = ?"
-        )?;
-        let note = stmt.query_row(params![id], |row| {
-            Ok(Note {
-                id: row.get(0)?,
-                lesson_id: row.get(1)?,
-                text: row.get(2)?,
-                edited_at: row.get(3)?,
-            })
-        }).optional()?;
-        Ok(note)
+
+        conn.query_row(
+            format!("SELECT * FROM notes WHERE id = {}", id).as_str(), 
+            [], 
+            |row| Note::from_row(row)
+        )
     }
 
-    pub fn update_note(&self, note: &Note) -> SqliteResult<()> {
+    pub fn update_note(&self, id: usize, text: String, edited_at: usize) -> SqliteResult<()> {
         let conn = self.connect()?;
         conn.execute(
-            "UPDATE notes SET lesson_id = ?, text = ?, edited_at = ? WHERE id = ?",
-            params![note.lesson_id, note.text, note.edited_at, note.id],
+            "UPDATE notes SET text = ?, edited_at = ? WHERE id = ?",
+            params![text, edited_at, id],
         )?;
+
         Ok(())
     }
 

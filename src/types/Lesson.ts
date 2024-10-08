@@ -9,13 +9,15 @@ export type Lesson = {
 };
 
 export type Question = {
+  id: number;
   lessonId: Lesson["id"];
-  text: string;
-  answer: string;
+  userQuestion: string;
+  tutorAnswer: string;
   timestamp: number;
 };
 
 export type Note = {
+  id: number;
   lessonId: Lesson["id"];
   text: string;
   editedAt: number;

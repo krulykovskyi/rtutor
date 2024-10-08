@@ -67,6 +67,18 @@ pub struct Question {
     pub timestamp: usize,
 }
 
+impl Question {
+    pub fn from_row(row: &Row) -> RusqliteResult<Question> {
+        Ok(Question {
+            id: row.get(0)?,
+            lesson_id: row.get(1)?,
+            user_question: row.get(2)?,
+            tutor_answer: row.get(3)?,
+            timestamp: row.get(4)?,
+        })
+    }
+}
+
 #[derive(Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Note {
@@ -74,4 +86,15 @@ pub struct Note {
     pub lesson_id: usize,
     pub text: String,
     pub edited_at: usize,
+}
+
+impl Note {
+    pub fn from_row(row: &Row) -> RusqliteResult<Note> {
+        Ok(Note {
+            id: row.get(0)?,
+            lesson_id: row.get(1)?,
+            text: row.get(2)?,
+            edited_at: row.get(3)?,
+        })
+    }
 }
